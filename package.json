@@ -1,0 +1,18 @@
+{
+  "name": "@entropyparadox/reusable-react-admin",
+  "version": "0.0.1",
+  "description": "Martian 팀의 React Admin 프로젝트에 재활용 가능한 유틸리티들을 모아둔 라이브러리 입니다.",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/entropyparadox/reusable-react-admin.git"
+  },
+  "author": "hugme4944@gmail.com",
+  "bugs": {
+    "url": "https://github.com/entropyparadox/reusable-react-admin/issues"
+  },
+  "homepage": "https://github.com/entropyparadox/reusable-react-admin#readme"
+}
