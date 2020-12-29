@@ -32,10 +32,7 @@ import {
   UpdateResult,
 } from 'ra-core';
 import { DataProvider } from 'react-admin';
-
-interface ReusableDataProviderOptions {
-  uri: string;
-}
+import { client } from './client';
 
 export class ReusableDataProvider implements DataProvider {
   private constructor(
@@ -43,12 +40,7 @@ export class ReusableDataProvider implements DataProvider {
     private readonly fields: Map<string, string[]>,
   ) {}
 
-  static async create(options: ReusableDataProviderOptions) {
-    const client = new ApolloClient({
-      uri: options.uri,
-      cache: new InMemoryCache(),
-    });
-
+  static async create() {
     const { data } = await client.query<IntrospectionQuery>({
       query: gql`
         query {
@@ -99,10 +91,7 @@ export class ReusableDataProvider implements DataProvider {
         .get(typeName)
         ?.join(' ')} } }`,
     });
-    return {
-      data: data.list,
-      total: data.list.length,
-    };
+    return { data: data.list, total: data.list.length };
   }
 
   async getOne(
@@ -110,22 +99,29 @@ export class ReusableDataProvider implements DataProvider {
     params: GetOneParams,
   ): Promise<GetOneResult<any>> {
     const queryName = singular(resource);
+    const typeName = startCase(singular(resource));
     const { data } = await this.client.query({
-      query: gql`query($id: Int!) { one: ${queryName}(id: $id) { id } }`,
-      variables: { id: params.id },
+      query: gql`query($id: Int!) { one: ${queryName}(id: $id) { ${this.fields
+        .get(typeName)
+        ?.join(' ')} } }`,
+      variables: { id: Number(params.id) },
     });
-    return {
-      data: data.one,
-    };
+    return { data: data.one };
   }
 
   async getMany(
     resource: string,
     params: GetManyParams,
   ): Promise<GetManyResult<any>> {
-    return {
-      data: [],
-    };
+    const queryName = camelCase(resource);
+    const typeName = startCase(singular(resource));
+    const { data } = await this.client.query({
+      query: gql`query($id: [Int!]!) { many: ${queryName}(ids: $ids) { ${this.fields
+        .get(typeName)
+        ?.join(' ')} } }`,
+      variables: { ids: params.ids.map((id) => Number(id)) },
+    });
+    return { data: data.many };
   }
 
   async getManyReference(
@@ -142,44 +138,34 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: UpdateParams,
   ): Promise<UpdateResult<any>> {
-    return {
-      data: { id: 1 },
-    };
+    return { data: { id: 1 } };
   }
 
   async updateMany(
     resource: string,
     params: UpdateManyParams,
   ): Promise<UpdateManyResult> {
-    return {
-      data: [],
-    };
+    return { data: [] };
   }
 
   async create(
     resource: string,
     params: CreateParams,
   ): Promise<CreateResult<any>> {
-    return {
-      data: { id: 1 },
-    };
+    return { data: { id: 1 } };
   }
 
   async delete(
     resource: string,
     params: DeleteParams,
   ): Promise<DeleteResult<any>> {
-    return {
-      data: { id: 1 },
-    };
+    return { data: { id: 1 } };
   }
 
   async deleteMany(
     resource: string,
     params: DeleteManyParams,
   ): Promise<DeleteManyResult> {
-    return {
-      data: [],
-    };
+    return { data: [] };
   }
 }
