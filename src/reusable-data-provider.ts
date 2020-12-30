@@ -1,9 +1,4 @@
-import {
-  ApolloClient,
-  gql,
-  InMemoryCache,
-  NormalizedCacheObject,
-} from '@apollo/client';
+import { ApolloClient, gql, NormalizedCacheObject } from '@apollo/client';
 import {
   IntrospectionNonNullTypeRef,
   IntrospectionObjectType,
@@ -98,7 +93,7 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: GetOneParams,
   ): Promise<GetOneResult<any>> {
-    const queryName = singular(resource);
+    const queryName = camelCase(singular(resource));
     const typeName = startCase(singular(resource));
     const { data } = await this.client.query({
       query: gql`query($id: Int!) { one: ${queryName}(id: $id) { ${this.fields
@@ -113,10 +108,10 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: GetManyParams,
   ): Promise<GetManyResult<any>> {
-    const queryName = camelCase(resource);
+    const queryName = `${camelCase(resource)}ByIds`;
     const typeName = startCase(singular(resource));
     const { data } = await this.client.query({
-      query: gql`query($id: [Int!]!) { many: ${queryName}(ids: $ids) { ${this.fields
+      query: gql`query($ids: [Int!]!) { many: ${queryName}(ids: $ids) { ${this.fields
         .get(typeName)
         ?.join(' ')} } }`,
       variables: { ids: params.ids.map((id) => Number(id)) },
@@ -134,38 +129,73 @@ export class ReusableDataProvider implements DataProvider {
     };
   }
 
+  async create(
+    resource: string,
+    params: CreateParams,
+  ): Promise<CreateResult<any>> {
+    const queryName = `create${startCase(singular(resource))}`;
+    const typeName = startCase(singular(resource));
+    const { data } = await this.client.mutate({
+      mutation: gql`mutation($data: String!) { create: ${queryName}(data: $data) { ${this.fields
+        .get(typeName)
+        ?.join(' ')} } }`,
+      variables: { data: JSON.stringify(params.data) },
+    });
+    return { data: data.create };
+  }
+
   async update(
     resource: string,
     params: UpdateParams,
   ): Promise<UpdateResult<any>> {
-    return { data: { id: 1 } };
+    const queryName = `update${startCase(singular(resource))}`;
+    const typeName = startCase(singular(resource));
+    const { data } = await this.client.mutate({
+      mutation: gql`mutation($id: Int!, $data: String!) { update: ${queryName}(id: $id, data: $data) { ${this.fields
+        .get(typeName)
+        ?.join(' ')} } }`,
+      variables: { id: Number(params.id), data: JSON.stringify(params.data) },
+    });
+    return { data: data.update };
   }
 
   async updateMany(
     resource: string,
     params: UpdateManyParams,
   ): Promise<UpdateManyResult> {
-    return { data: [] };
-  }
-
-  async create(
-    resource: string,
-    params: CreateParams,
-  ): Promise<CreateResult<any>> {
-    return { data: { id: 1 } };
+    const queryName = `update${startCase(resource)}ByIds`;
+    const { data } = await this.client.mutate({
+      mutation: gql`mutation($ids: [Int!]!, $data: String!) { update: ${queryName}(ids: $ids, data: $data) }`,
+      variables: {
+        ids: params.ids.map((id) => Number(id)),
+        data: JSON.stringify(params.data),
+      },
+    });
+    return { data: data.update };
   }
 
   async delete(
     resource: string,
     params: DeleteParams,
   ): Promise<DeleteResult<any>> {
-    return { data: { id: 1 } };
+    const queryName = `delete${startCase(singular(resource))}`;
+    const typeName = startCase(singular(resource));
+    const { data } = await this.client.mutate({
+      mutation: gql`mutation($id: Int!) { delete: ${queryName}(id: $id) }`,
+      variables: { id: Number(params.id) },
+    });
+    return { data: data.delete };
   }
 
   async deleteMany(
     resource: string,
     params: DeleteManyParams,
   ): Promise<DeleteManyResult> {
-    return { data: [] };
+    const queryName = `delete${startCase(resource)}ByIds`;
+    const { data } = await this.client.mutate({
+      mutation: gql`mutation($ids: [Int!]!) { delete: ${queryName}(ids: $ids) }`,
+      variables: { ids: params.ids.map((id) => Number(id)) },
+    });
+    return { data: data.delete };
   }
 }
