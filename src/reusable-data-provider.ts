@@ -4,7 +4,7 @@ import {
   IntrospectionObjectType,
   IntrospectionQuery,
 } from 'graphql';
-import { camelCase, startCase } from 'lodash';
+import { camelCase } from 'lodash';
 import { singular } from 'pluralize';
 import {
   CreateParams,
@@ -28,6 +28,7 @@ import {
 } from 'ra-core';
 import { DataProvider } from 'react-admin';
 import { client } from './client';
+import { pascalCase } from './utils';
 
 export class ReusableDataProvider implements DataProvider {
   private constructor(
@@ -80,7 +81,7 @@ export class ReusableDataProvider implements DataProvider {
     params: GetListParams,
   ): Promise<GetListResult<any>> {
     const queryName = camelCase(resource);
-    const typeName = startCase(singular(resource));
+    const typeName = pascalCase(singular(resource));
     const { data } = await this.client.query({
       query: gql`query { list: ${queryName} { ${this.fields
         .get(typeName)
@@ -94,7 +95,7 @@ export class ReusableDataProvider implements DataProvider {
     params: GetOneParams,
   ): Promise<GetOneResult<any>> {
     const queryName = camelCase(singular(resource));
-    const typeName = startCase(singular(resource));
+    const typeName = pascalCase(singular(resource));
     const { data } = await this.client.query({
       query: gql`query($id: Int!) { one: ${queryName}(id: $id) { ${this.fields
         .get(typeName)
@@ -109,7 +110,7 @@ export class ReusableDataProvider implements DataProvider {
     params: GetManyParams,
   ): Promise<GetManyResult<any>> {
     const queryName = `${camelCase(resource)}ByIds`;
-    const typeName = startCase(singular(resource));
+    const typeName = pascalCase(singular(resource));
     const { data } = await this.client.query({
       query: gql`query($ids: [Int!]!) { many: ${queryName}(ids: $ids) { ${this.fields
         .get(typeName)
@@ -133,8 +134,8 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: CreateParams,
   ): Promise<CreateResult<any>> {
-    const queryName = `create${startCase(singular(resource))}`;
-    const typeName = startCase(singular(resource));
+    const queryName = `create${pascalCase(singular(resource))}`;
+    const typeName = pascalCase(singular(resource));
     const { data } = await this.client.mutate({
       mutation: gql`mutation($data: String!) { create: ${queryName}(data: $data) { ${this.fields
         .get(typeName)
@@ -148,8 +149,8 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: UpdateParams,
   ): Promise<UpdateResult<any>> {
-    const queryName = `update${startCase(singular(resource))}`;
-    const typeName = startCase(singular(resource));
+    const queryName = `update${pascalCase(singular(resource))}`;
+    const typeName = pascalCase(singular(resource));
     const { data } = await this.client.mutate({
       mutation: gql`mutation($id: Int!, $data: String!) { update: ${queryName}(id: $id, data: $data) { ${this.fields
         .get(typeName)
@@ -163,7 +164,7 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: UpdateManyParams,
   ): Promise<UpdateManyResult> {
-    const queryName = `update${startCase(resource)}ByIds`;
+    const queryName = `update${pascalCase(resource)}ByIds`;
     const { data } = await this.client.mutate({
       mutation: gql`mutation($ids: [Int!]!, $data: String!) { update: ${queryName}(ids: $ids, data: $data) }`,
       variables: {
@@ -178,8 +179,8 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: DeleteParams,
   ): Promise<DeleteResult<any>> {
-    const queryName = `delete${startCase(singular(resource))}`;
-    const typeName = startCase(singular(resource));
+    const queryName = `delete${pascalCase(singular(resource))}`;
+    const typeName = pascalCase(singular(resource));
     const { data } = await this.client.mutate({
       mutation: gql`mutation($id: Int!) { delete: ${queryName}(id: $id) }`,
       variables: { id: Number(params.id) },
@@ -191,7 +192,7 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: DeleteManyParams,
   ): Promise<DeleteManyResult> {
-    const queryName = `delete${startCase(resource)}ByIds`;
+    const queryName = `delete${pascalCase(resource)}ByIds`;
     const { data } = await this.client.mutate({
       mutation: gql`mutation($ids: [Int!]!) { delete: ${queryName}(ids: $ids) }`,
       variables: { ids: params.ids.map((id) => Number(id)) },
