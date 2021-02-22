@@ -66,8 +66,8 @@ export class ReusableDataProvider implements DataProvider {
           (type as IntrospectionObjectType).fields
             .filter(
               (field) =>
-                (field.type as IntrospectionNonNullTypeRef).ofType?.kind ===
-                'SCALAR',
+                (field.type as IntrospectionNonNullTypeRef).ofType?.kind !==
+                'LIST',
             )
             .map((field) => field.name),
         ]),
