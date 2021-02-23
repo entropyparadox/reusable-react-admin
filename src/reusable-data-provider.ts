@@ -84,11 +84,15 @@ export class ReusableDataProvider implements DataProvider {
     const queryName = camelCase(resource);
     const typeName = pascalCase(singular(resource));
     const { data } = await this.client.query({
-      query: gql`query { list: ${queryName} { ${this.fields
+      query: gql`query($page: Int!, $perPage: Int!) { list: ${queryName}(page: $page, perPage: $perPage) { data { ${this.fields
         .get(typeName)
-        ?.join(' ')} } }`,
+        ?.join(' ')} } total } }`,
+      variables: {
+        page: params.pagination.page,
+        perPage: params.pagination.perPage,
+      },
     });
-    return { data: data.list, total: data.list.length };
+    return { data: data.list.data, total: data.list.total };
   }
 
   async getOne(
