@@ -129,10 +129,20 @@ export class ReusableDataProvider implements DataProvider {
     resource: string,
     params: GetManyReferenceParams,
   ): Promise<GetManyReferenceResult<any>> {
-    return {
-      data: [],
-      total: 0,
-    };
+    const queryName = `${camelCase(resource)}ByTarget`;
+    const typeName = pascalCase(singular(resource));
+    const { data } = await this.client.query({
+      query: gql`query($target: String!, $id: Int!, $page: Int!, $perPage: Int!) { many: ${queryName}(target: $target, id: $id, page: $page, perPage: $perPage) { data { ${this.fields
+        .get(typeName)
+        ?.join(' ')} } total } }`,
+      variables: {
+        target: params.target,
+        id: params.id,
+        page: params.pagination.page,
+        perPage: params.pagination.perPage,
+      },
+    });
+    return { data: data.many.data, total: data.many.total };
   }
 
   async create(
