@@ -28,7 +28,7 @@ import {
 } from 'ra-core';
 import { DataProvider } from 'react-admin';
 import { client } from './client';
-import { pascalCase } from './utils';
+import { convertFilePropertiesToBase64, pascalCase } from './utils';
 
 export class ReusableDataProvider implements DataProvider {
   private constructor(
@@ -155,7 +155,9 @@ export class ReusableDataProvider implements DataProvider {
       mutation: gql`mutation($data: String!) { create: ${queryName}(data: $data) { ${this.fields
         .get(typeName)
         ?.join(' ')} } }`,
-      variables: { data: JSON.stringify(params.data) },
+      variables: {
+        data: JSON.stringify(await convertFilePropertiesToBase64(params.data)),
+      },
     });
     return { data: data.create };
   }
@@ -170,7 +172,10 @@ export class ReusableDataProvider implements DataProvider {
       mutation: gql`mutation($id: Int!, $data: String!) { update: ${queryName}(id: $id, data: $data) { ${this.fields
         .get(typeName)
         ?.join(' ')} } }`,
-      variables: { id: Number(params.id), data: JSON.stringify(params.data) },
+      variables: {
+        id: Number(params.id),
+        data: JSON.stringify(await convertFilePropertiesToBase64(params.data)),
+      },
     });
     return { data: data.update };
   }
