@@ -84,13 +84,10 @@ export class ReusableDataProvider implements DataProvider {
     const queryName = camelCase(resource);
     const typeName = pascalCase(singular(resource));
     const { data } = await this.client.query({
-      query: gql`query($page: Int!, $perPage: Int!) { list: ${queryName}(page: $page, perPage: $perPage) { data { ${this.fields
+      query: gql`query($params: String!) { list: ${queryName}(params: $params) { data { ${this.fields
         .get(typeName)
         ?.join(' ')} } total } }`,
-      variables: {
-        page: params.pagination.page,
-        perPage: params.pagination.perPage,
-      },
+      variables: { params: JSON.stringify(params) },
     });
     return { data: data.list.data, total: data.list.total };
   }
@@ -132,15 +129,10 @@ export class ReusableDataProvider implements DataProvider {
     const queryName = `${camelCase(resource)}ByTarget`;
     const typeName = pascalCase(singular(resource));
     const { data } = await this.client.query({
-      query: gql`query($target: String!, $id: Int!, $page: Int!, $perPage: Int!) { many: ${queryName}(target: $target, id: $id, page: $page, perPage: $perPage) { data { ${this.fields
+      query: gql`query($params: String!) { many: ${queryName}(params: $params) { data { ${this.fields
         .get(typeName)
         ?.join(' ')} } total } }`,
-      variables: {
-        target: params.target,
-        id: params.id,
-        page: params.pagination.page,
-        perPage: params.pagination.perPage,
-      },
+      variables: { params: JSON.stringify(params) },
     });
     return { data: data.many.data, total: data.many.total };
   }
