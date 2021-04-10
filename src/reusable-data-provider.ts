@@ -47,6 +47,7 @@ export class ReusableDataProvider implements DataProvider {
               fields {
                 name
                 type {
+                  kind
                   ofType {
                     kind
                   }
@@ -66,6 +67,9 @@ export class ReusableDataProvider implements DataProvider {
           (type as IntrospectionObjectType).fields
             .filter(
               (field) =>
+                !['OBJECT', 'LIST'].includes(
+                  (field.type as IntrospectionNonNullTypeRef).kind,
+                ) &&
                 !['OBJECT', 'LIST'].includes(
                   (field.type as IntrospectionNonNullTypeRef).ofType?.kind,
                 ),
