@@ -1,7 +1,7 @@
 import { ApolloClient, gql, NormalizedCacheObject } from '@apollo/client';
 import {
-  IntrospectionNonNullTypeRef,
   IntrospectionObjectType,
+  IntrospectionOutputTypeRef,
   IntrospectionQuery,
 } from 'graphql';
 import { camelCase } from 'lodash';
@@ -50,6 +50,12 @@ export class ReusableDataProvider implements DataProvider {
                   kind
                   ofType {
                     kind
+                    ofType {
+                      kind
+                      ofType {
+                        kind
+                      }
+                    }
                   }
                 }
               }
@@ -59,21 +65,21 @@ export class ReusableDataProvider implements DataProvider {
       `,
     });
 
+    function isNotObject(type: IntrospectionOutputTypeRef): boolean {
+      if (type.kind === 'OBJECT') return false;
+      if (type.kind === 'LIST' || type.kind === 'NON_NULL') {
+        return isNotObject(type.ofType);
+      }
+      return true;
+    }
+
     const fields = new Map(
       data.__schema.types
         .filter((type) => type.kind === 'OBJECT' && !type.name.startsWith('__'))
         .map((type) => [
           type.name,
           (type as IntrospectionObjectType).fields
-            .filter(
-              (field) =>
-                !['OBJECT', 'LIST'].includes(
-                  (field.type as IntrospectionNonNullTypeRef).kind,
-                ) &&
-                !['OBJECT', 'LIST'].includes(
-                  (field.type as IntrospectionNonNullTypeRef).ofType?.kind,
-                ),
-            )
+            .filter((field) => isNotObject(field.type))
             .map((field) => field.name),
         ]),
     );
