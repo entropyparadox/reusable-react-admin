@@ -19,12 +19,13 @@ export const reusableAuthProvider: AuthProvider = {
 
   async logout() {
     localStorage.removeItem('token');
+    return Promise.resolve();
   },
 
   async checkError({ status }) {
-    if (status === 401 || status === 403) {
+    if (status?.statusCode === 401 || status === 403 || status === 401) {
       localStorage.removeItem('token');
-      return Promise.reject();
+      return Promise.reject({ redirectTo: '/login' });
     }
     return Promise.resolve();
   },
