@@ -26,6 +26,7 @@ export const reusableAuthProvider: AuthProvider = {
       localStorage.removeItem('token');
       return Promise.reject();
     }
+    return Promise.resolve();
   },
 
   async checkAuth(error: any) {
