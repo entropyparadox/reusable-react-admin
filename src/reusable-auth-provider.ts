@@ -23,7 +23,7 @@ export const reusableAuthProvider: AuthProvider = {
   },
 
   async checkError({ status }) {
-    if (status?.statusCode === 401 || status === 403 || status === 401) {
+    if (status.statusCode === 401 || status === 403 || status === 401) {
       localStorage.removeItem('token');
       return Promise.reject({ redirectTo: '/login' });
     }
